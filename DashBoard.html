@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Management</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #6c5ce7, #74b9ff);
+      font-family: 'Georgia', serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar styles */
+    .sidebar {
+      background-color: #2d3436;
+      color: #fff;
+      width: 250px;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding-top: 30px;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar:hover {
+      width: 300px;
+    }
+
+    .sidebar a {
+      color: #dfe6e9;
+      padding: 15px 20px;
+      display: block;
+      text-decoration: none;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .sidebar a:hover {
+      background-color: #34495e;
+      transform: scale(1.05);
+    }
+
+    .main-content {
+      margin-left: 260px;
+      padding: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+      background-color: #6c5ce7;
+      padding: 15px;
+      color: white;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .chart-container {
+      display: flex;
+      justify-content: center;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      transition: all 0.5s ease-in-out;
+    }
+
+    .project-card {
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      width: 100%;
+    }
+
+    .project-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .project-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      color: #2d3436;
+      font-weight: 600;
+    }
+
+    .project-card ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .project-card li {
+      padding: 5px;
+      border: 1px solid #ddd;
+      margin-bottom: 5px;
+      border-radius: 5px;
+    }
+
+    .project-card .status {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .footer {
+      text-align: center;
+      background-color: #2d3436;
+      color: #fff;
+      padding: 20px;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      font-size: 0.875rem;
+    }
+
+    .title {
+        font-family: 'Georgia', serif;
+      font-size: 3rem;
+      color: white;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+      margin-bottom: 30px;
+      font-weight: 700;
+    }
+ 
+
+    .percentage-label {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #0984e3;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Team Card Styles */
+    .team-member-card {
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .team-member-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .team-member-img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin-right: 20px;
+    }
+
+    .team-member-info {
+      flex-grow: 1;
+    }
+
+    .team-member-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #2d3436;
+    }
+
+    .team-member-designation {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+    }
+
+    .sdlc-img-container {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .sdlc-img-container img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Custom Doughnut Chart Style */
+    .project-card canvas {
+      border-radius: 50%;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- Image before the text -->
+    <img src="https://randomuser.me/api/portraits/men/10.jpg" alt="Logo" class="w-20 h-2o mx-auto mb-4 rounded-full">
+    
+    <!-- Sidebar Heading -->
+    <h2 class="text-center text-xl text-white">Sai Mettu</h2>
+    
+    <!-- Sidebar Links -->
+    <a href="#" id="dashboardLink">Dashboard</a>
+    <a href="#" id="projectsLink">Projects</a>
+    <a href="#" id="teamLink">Team</a>
+    <a href="#">Settings</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <header class="text-center py-6">
+      <h1 class="title ">Sai's Project Dashboard</h1>
+    </header>
+
+    <main>
+      <!-- Projects Overview (Hidden by default) -->
+      <div class="card hidden" id="projectsOverviewCard">
+        <div class="card-header">Projects Overview</div>
+        <div class="card-body">
+          <div class="grid-container" id="projectsOverview">
+            <!-- Dynamic content for each project will be inserted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SDLC Image Section -->
+      <div class="sdlc-img-container">
+        <h2 class="text-xl font-semibold text-white mb-4">Software Development Life Cycle (SDLC)</h2>
+        <img src="/SDLC.webp" alt="SDLC Process" class="mx-auto block" />
+      </div>
+
+      <!-- Team Members List (Hidden by default) -->
+      <div class="card hidden" id="teamCard">
+        <div class="card-header">Team Members</div>
+        <div class="card-body">
+          <ul id="teamList">
+            <!-- Team members will be dynamically inserted here -->
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Data for projects
+    const projectData = {
+      'K12 GDS': { progress: 98, status: "Completed", resources: ["Bharath D", "Nitin Faujdar", "Rishikesh Kumar", "Shubham Ughade", "Kondra Raghavender", "Mohammed Saliya", "Praveen D"], color: "green" },
+      'MOJO': { progress: 60, status: "At Risk", resources: ["Bharath D", "Karthik", "Shubham Ughade", "Kondra Raghavender", "Mohammed Saliya", "Praveen D"], color: "red" },
+      'RECRUIT CRM': { progress: 45, status: "Delayed", resources: ["Bharath D", "Nitin Faujdar", "Rishikesh Kumar", "Shubham Ughade", "Kondra Raghavender", "Manikandan Moorthy"], color: "orange" },
+      'MilesX': { progress: 90, status: "On Track", resources: [ "Praveen D", "Krishna", "Jithin","Kondra Raghavender" ], color: "blue" }
+    };
+
+    // Data for team members with images and designations
+    const teamMembers = [
+      { name: "Bharath D", img: "https://randomuser.me/api/portraits/men/10.jpg", designation: "Tech Lead" },
+      { name: "Nitin Faujdar", img: "https://randomuser.me/api/portraits/men/12.jpg", designation: "Django Developer" },
+      { name: "Rishikesh Kumar", img: "https://randomuser.me/api/portraits/men/15.jpg", designation: "React Developer" },
+      { name: "Shubham Ughade", img: "https://randomuser.me/api/portraits/men/18.jpg", designation: "Quality Analyst" },
+      { name: "Kondra Raghavender", img: "https://randomuser.me/api/portraits/men/22.jpg", designation: "Quality Analyst" },
+      { name: "Mohammed Saliya", img: "https://randomuser.me/api/portraits/men/25.jpg", designation: "Flutter Developer" },
+      { name: "Praveen D", img: "https://randomuser.me/api/portraits/men/28.jpg", designation: "Flutter Developer" },
+      { name: "Krishna", img: "https://randomuser.me/api/portraits/men/30.jpg", designation: "React Developer" },
+      { name: "Jithin", img: "https://randomuser.me/api/portraits/men/35.jpg", designation: "Flutter Developer" },
+      { name: "Karthik", img: "https://randomuser.me/api/portraits/men/40.jpg", designation: "Django Developer" }
+    ];
+
+    // Function to create a fancy team member card
+    function createTeamMemberCard(member) {
+      const card = document.createElement('div');
+      card.classList.add('team-member-card');
+
+      const img = document.createElement('img');
+      img.classList.add('team-member-img');
+      img.src = member.img;
+      img.alt = member.name;
+
+      const info = document.createElement('div');
+      info.classList.add('team-member-info');
+
+      const name = document.createElement('div');
+      name.classList.add('team-member-name');
+      name.textContent = member.name;
+
+      const designation = document.createElement('div');
+      designation.classList.add('team-member-designation');
+      designation.textContent = member.designation;
+
+      info.appendChild(name);
+      info.appendChild(designation);
+
+      card.appendChild(img);
+      card.appendChild(info);
+
+      return card;
+    }
+
+    // Render all team members
+    const teamList = document.getElementById('teamList');
+    teamMembers.forEach(member => {
+      const memberCard = createTeamMemberCard(member);
+      teamList.appendChild(memberCard);
+    });
+
+    // Function to create a card for each project
+    function createProjectCard(projectName, projectInfo) {
+      const card = document.createElement('div');
+      card.classList.add('project-card');
+
+      // Project title
+      const title = document.createElement('h3');
+      title.textContent = `Project ${projectName}`;
+      card.appendChild(title);
+
+      // Resources list
+      const resourcesList = document.createElement('ul');
+      projectInfo.resources.forEach(resource => {
+        const resourceItem = document.createElement('li');
+        resourceItem.textContent = resource;
+        resourcesList.appendChild(resourceItem);
+      });
+      card.appendChild(resourcesList);
+
+      // Progress chart
+      const chartContainer = document.createElement('div');
+      const canvas = document.createElement('canvas');
+      canvas.style.width = '120px';
+      canvas.style.height = '120px';
+      chartContainer.appendChild(canvas);
+      card.appendChild(chartContainer);
+
+      const ctx = canvas.getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Completed', 'Remaining'],
+          datasets: [{
+            data: [projectInfo.progress, 100 - projectInfo.progress],
+            backgroundColor: [projectInfo.color, '#dfe6e9'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          cutoutPercentage: 80, /* Thinner doughnut */
+          rotation: -0.5 * Math.PI,
+          animation: {
+            animateRotate: true,
+            duration: 1500
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+
+      // Status
+      const status = document.createElement('div');
+      status.classList.add('status');
+      status.textContent = `Status: ${projectInfo.status}`;
+      card.appendChild(status);
+
+      return card;
+    }
+
+    // Render all projects
+    const projectsOverview = document.getElementById('projectsOverview');
+    Object.entries(projectData).forEach(([projectName, projectInfo]) => {
+      const projectCard = createProjectCard(projectName, projectInfo);
+      projectsOverview.appendChild(projectCard);
+    });
+
+    // Show content based on sidebar click
+    document.getElementById('dashboardLink').addEventListener('click', () => {
+      document.getElementById('projectsOverviewCard').classList.remove('hidden');
+      document.getElementById('teamCard').classList.add('hidden');
+    });
+
+    document.getElementById('projectsLink').addEventListener('click', () => {
+      document.getElementById('projectsOverviewCard').classList.remove('hidden');
+      document.getElementById('teamCard').classList.add('hidden');
+    });
+
+    document.getElementById('teamLink').addEventListener('click', () => {
+      document.getElementById('projectsOverviewCard').classList.add('hidden');
+      document.getElementById('teamCard').classList.remove('hidden');
+    });
+
+    // Show dashboard by default
+    document.getElementById('dashboardLink').click();
+  </script>
+</body>
+</html>
